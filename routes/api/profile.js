@@ -3,6 +3,7 @@ const HTTPStatus = require('http-status-codes')
 
 const User = require('../../models/User')
 const Address = require('../../models/Address')
+const JWT = require('../../config/JWT')
 
 router.get(`/:username`, async (req, res, next) => {
   const { username } = req.params
@@ -34,5 +35,27 @@ router.get(`/:username`, async (req, res, next) => {
     return next(e)
   }
 })
+
+router.get('/profile', JWT.authenticated, (req, res, next) => {
+  return res.status(HTTPStatus.OK).json({
+    user: req.user.toAuthJSON()
+  })
+})
+
+/*
+router.put('/profile', JWT.authenticated, (req, res, next) => {
+  let form = new formidable.IncomingForm()
+
+  form.parse(req)
+
+  form.on('fileBegin', (name, file) => {
+    file.on('error', e => next({ statusCode: HTTPStatus.UNPROCESSABLE_ENTITY, errors: e }))
+
+    file.open = function () {
+      this._writeStream
+    }
+  })
+})
+*/
 
 module.exports = router
