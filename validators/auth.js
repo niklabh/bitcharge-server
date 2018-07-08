@@ -1,5 +1,4 @@
 const { check } = require('express-validator/check')
-const User = require('../models/User')
 const { sanitize } = require('express-validator/filter')
 
 exports.login = [

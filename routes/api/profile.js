@@ -3,7 +3,7 @@ const HTTPStatus = require('http-status-codes')
 
 const User = require('../../models/User')
 const Address = require('../../models/Address')
-const JWT = require('../../config/JWT')
+const JWT = require('../../config/jwt')
 
 router.get(`/:username`, async (req, res, next) => {
   const { username } = req.params
@@ -14,7 +14,7 @@ router.get(`/:username`, async (req, res, next) => {
         statusCode: HTTPStatus.NOT_FOUND,
         message: 'User not found',
         details: {
-          project: `No user found with username ${username}`
+          user: `No user found with username ${username}`
         }
       })
     }

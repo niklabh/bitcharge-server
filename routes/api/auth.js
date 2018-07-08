@@ -13,7 +13,7 @@ router.post('/signup', validate.signup, async (req, res, next) => {
   if (!errors.isEmpty) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
-      errors: 'cannot create'
+      errors
     })
   }
   try {
