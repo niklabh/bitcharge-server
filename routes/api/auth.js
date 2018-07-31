@@ -4,6 +4,9 @@ const passport = require('passport')
 const { validationResult } = require('express-validator/check')
 const { matchedData } = require('express-validator/filter')
 
+const queue = require('../../queue/worker')
+const confirmEmailConstants = require('../../config/constants').confirmationEmail
+
 const User = require('../../models/User')
 const validate = require('../../validators/auth')
 
@@ -18,9 +21,18 @@ router.post('/signup', validate.signup, async (req, res, next) => {
   }
   try {
     const user = await new User(matchedData(req)).save()
-    console.log(user)
+
+    const confirmationCode = user.generateConfirmationCode()
+    await user.saveConfirmationCode(confirmationCode)
+
+    queue.now(confirmEmailConstants.CONFIRM_EMAIL, {
+      email: user.email,
+      name: user.name,
+      code: confirmationCode
+    })
+
     return res.status(HTTPStatus.OK).json({
-      user: user.toAuthJSON()
+      message: 'User successfully created'
     })
   } catch (e) {
     console.log(e)
@@ -57,6 +69,14 @@ router.post('/login', validate.login, (req, res, next) => {
   })(req, res, next)
 })
 
-router.get('/me', async (req, res, next) => res.json({ working: true }))
+router.post('/forgot', validate.forgotPassword, async (req, res, next) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty) {
+    return next({
+      statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
+      errors
+    })
+  }
+})
 
 module.exports = router

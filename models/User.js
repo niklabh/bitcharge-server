@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
+const randomstring = require('randomstring')
 const _ = require('lodash')
 
 const UserSchema = new mongoose.Schema({
@@ -9,7 +10,11 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: String,
   intro: String,
-  avatar: String
+  avatar: String,
+  isVerified: { type: Boolean, default: false },
+  admin: { type: Boolean, default: false },
+  recoveryCode: { code: String, expiration: Date },
+  confirmationCode: String
 }, { timestamps: true })
 
 UserSchema.pre('save', async function (next) {
@@ -37,6 +42,49 @@ UserSchema.methods.verifyPassword = function (password) {
   })
 }
 
+UserSchema.methods.generateRecoveryCode = function (length = 6) {
+  const code = randomstring.generate({
+    length,
+    charset: 'numeric'
+  })
+
+  const recoveryCode = {
+    code,
+    expiration: new Date()
+  }
+
+  return recoveryCode
+}
+
+UserSchema.methods.saveRecoveryCode = function (recoveryCode) {
+  this.recoveryCode = recoveryCode
+
+  return this.save()
+}
+
+UserSchema.methods.generateConfirmationCode = function (length = 12) {
+  const code = randomstring.generate({
+    length
+  })
+  return code
+}
+
+UserSchema.methods.saveConfirmationCode = function (code) {
+  this.confirmationCode = code
+
+  return this.save()
+}
+
+UserSchema.methods.confirmEmail = function (code) {
+  if (code === this.confirmationCode) {
+    this.isVerified = true
+    this.confirmationCode = null
+    return this.save()
+  } else {
+    return false
+  }
+}
+
 UserSchema.methods.generateJWT = function () {
   return jwt.sign(
     { id: this._id, username: this.username },
@@ -53,6 +101,7 @@ UserSchema.methods.toAuthJSON = function () {
     email: this.email,
     name: this.name,
     intro: this.intro,
+    isVerified: this.isVerified,
     avatar: this.avatar,
     created_at: this.createdAt,
     updated_at: this.updatedAt

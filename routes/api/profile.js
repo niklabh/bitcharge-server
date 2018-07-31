@@ -5,6 +5,12 @@ const User = require('../../models/User')
 const Address = require('../../models/Address')
 const JWT = require('../../config/jwt')
 
+router.get('/profile', JWT.authenticated, (req, res, next) => {
+  return res.status(HTTPStatus.OK).json({
+    user: req.user.toAuthJSON()
+  })
+})
+
 router.get(`/:username`, async (req, res, next) => {
   const { username } = req.params
   try {
@@ -34,12 +40,6 @@ router.get(`/:username`, async (req, res, next) => {
   } catch (e) {
     return next(e)
   }
-})
-
-router.get('/profile', JWT.authenticated, (req, res, next) => {
-  return res.status(HTTPStatus.OK).json({
-    user: req.user.toAuthJSON()
-  })
 })
 
 /*
