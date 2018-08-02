@@ -1,6 +1,6 @@
 const mjml2html = require('mjml')
 
-const confirmationEmail = (code, name = 'User') => {
+const confirmationEmail = ({ code }) => {
   if (!code) {
     throw new Error('Confirmation code is required')
   }
@@ -38,14 +38,14 @@ const confirmationEmail = (code, name = 'User') => {
             <mj-section background-color='#fff' padding='30px 30px'>
               <mj-spacer height='30px' />
               <mj-text align='left' color='#414143' font-size='16' font-family='Montserrat'>
-                Hi ${name},
+                Hi There,
               </mj-text>
               <mj-spacer height='30px' />
               <mj-text align='left' color='#414143' font-size='14' font-family='Montserrat' font-weight='300' line-height='25px'>
                  Thank you for joining Bitcharge. To start using your Bitcharge account we need to confirm your email address.
                 </mj-text>
                 <mj-spacer height='50px' />
-                <mj-button background-color="#96CB6A" color='#fff' font-family='Montserrat' font-size='16px' inner-padding='18px 32px' href="//bitcharge.co/confirm?confirmationCode=${code}">
+                <mj-button background-color="#96CB6A" color='#fff' font-family='Montserrat' font-size='16px' inner-padding='18px 32px' href="${process.env.PUBLIC_URL}/confirm?confirmationCode=${code}">
                   Verify Email Address
                 </mj-button>
                 <mj-spacer height='50px' />

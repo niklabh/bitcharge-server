@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const randomstring = require('randomstring')
 const _ = require('lodash')
+const moment = require('moment')
+
+const errorTypes = require('../config/constants').errorTypes
 
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, index: true, unique: true },
@@ -11,10 +14,10 @@ const UserSchema = new mongoose.Schema({
   name: String,
   intro: String,
   avatar: String,
-  isVerified: { type: Boolean, default: false },
+  active: { type: Boolean, default: false },
   admin: { type: Boolean, default: false },
   recoveryCode: { code: String, expiration: Date },
-  confirmationCode: String
+  confirmationCode: { code: String, expiration: Date }
 }, { timestamps: true })
 
 UserSchema.pre('save', async function (next) {
@@ -50,7 +53,7 @@ UserSchema.methods.generateRecoveryCode = function (length = 6) {
 
   const recoveryCode = {
     code,
-    expiration: new Date()
+    expiration: moment().add(60, 'minutes').toDate()
   }
 
   return recoveryCode
@@ -66,28 +69,46 @@ UserSchema.methods.generateConfirmationCode = function (length = 12) {
   const code = randomstring.generate({
     length
   })
-  return code
+  const confirmationCode = {
+    code,
+    expiration: moment().add(24, 'hours').toDate()
+  }
+
+  return confirmationCode
 }
 
-UserSchema.methods.saveConfirmationCode = function (code) {
-  this.confirmationCode = code
+UserSchema.methods.saveConfirmationCode = function (confirmationObj) {
+  this.confirmationCode = confirmationObj
 
   return this.save()
 }
 
 UserSchema.methods.confirmEmail = function (code) {
-  if (code === this.confirmationCode) {
-    this.isVerified = true
-    this.confirmationCode = null
-    return this.save()
+  console.log(code)
+  if (code === this.confirmationCode.code) {
+    console.log(this.confirmationCode)
+    if (moment().isBefore(this.confirmationCode.expiration)) {
+      this.active = true
+      this.confirmationCode = null
+      return this.save()
+    } else {
+      const error = new Error('Confirmation Code expired')
+      error.type = errorTypes.CONFIRM_EMAIL_CODE_EXPIRED
+
+      throw error
+    }
   } else {
-    return false
+    console.log('Invalid code')
+    const error = new Error('Invalid confirmation code')
+    error.type = errorTypes.CONFIRM_EMAIL_CODE_INVALID
+
+    throw error
   }
 }
 
 UserSchema.methods.generateJWT = function () {
   return jwt.sign(
-    { id: this._id, username: this.username },
+    { id: this._id, username: this.username, active: this.active, admin: this.admin },
     process.env.JWT_SECRET,
     {expiresIn: '2 days'}
   )
@@ -101,7 +122,7 @@ UserSchema.methods.toAuthJSON = function () {
     email: this.email,
     name: this.name,
     intro: this.intro,
-    isVerified: this.isVerified,
+    active: this.active,
     avatar: this.avatar,
     created_at: this.createdAt,
     updated_at: this.updatedAt

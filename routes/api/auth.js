@@ -6,6 +6,8 @@ const { matchedData } = require('express-validator/filter')
 
 const queue = require('../../queue/worker')
 const confirmEmailConstants = require('../../config/constants').confirmationEmail
+const errorTypes = require('../../config/constants').errorTypes
+const JWT = require('../../config/jwt')
 
 const User = require('../../models/User')
 const validate = require('../../validators/auth')
@@ -28,11 +30,11 @@ router.post('/signup', validate.signup, async (req, res, next) => {
     queue.now(confirmEmailConstants.CONFIRM_EMAIL, {
       email: user.email,
       name: user.name,
-      code: confirmationCode
+      code: confirmationCode.code
     })
 
     return res.status(HTTPStatus.OK).json({
-      message: 'User successfully created'
+      user: user.toAuthJSON()
     })
   } catch (e) {
     console.log(e)
@@ -67,6 +69,26 @@ router.post('/login', validate.login, (req, res, next) => {
       })
     }
   })(req, res, next)
+})
+
+router.post('/confirm', JWT.authenticated, async (req, res, next) => {
+  try {
+    await req.user.confirmEmail(req.body.confirmationCode)
+    return res.status(HTTPStatus.OK).json({
+      message: 'Email confirmed successfully'
+    })
+  } catch (e) {
+    if (e.type === errorTypes.CONFIRM_EMAIL_CODE_EXPIRED) {
+      return next({
+        statusCode: HTTPStatus.GONE,
+        error: e
+      })
+    }
+    return next({
+      statusCode: HTTPStatus.UNAUTHORIZED,
+      error: e
+    })
+  }
 })
 
 router.post('/forgot', validate.forgotPassword, async (req, res, next) => {
