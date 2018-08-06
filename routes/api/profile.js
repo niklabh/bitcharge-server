@@ -5,10 +5,36 @@ const User = require('../../models/User')
 const Address = require('../../models/Address')
 const JWT = require('../../config/jwt')
 
-router.get('/profile', JWT.authenticated, (req, res, next) => {
-  return res.status(HTTPStatus.OK).json({
-    user: req.user.toAuthJSON()
+const getUserAddresses = async (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let addresses = await Address.find({ user: id })
+
+      if (addresses.length) {
+        addresses = addresses.map(async (address) => {
+          await address.populate('currency').execPopulate()
+          return resolve(address.toAddressJSON(address.currency.toCurrencyJSON()))
+        })
+      } else {
+        return resolve([])
+      }
+    } catch (e) {
+      return reject(e)
+    }
   })
+}
+
+router.get('/profile', JWT.authenticated, async (req, res, next) => {
+  try {
+    const addresses = await getUserAddresses(req.user._id)
+    console.log(addresses)
+    return res.status(HTTPStatus.OK).json({
+      ...req.user.toAuthJSON(),
+      addresses
+    })
+  } catch (e) {
+    return next(e)
+  }
 })
 
 router.get(`/:username`, async (req, res, next) => {
@@ -25,13 +51,7 @@ router.get(`/:username`, async (req, res, next) => {
       })
     }
 
-    let addresses = await Address.find({ user: user._id })
-    if (addresses.length) {
-      addresses = addresses.map(async (address) => {
-        await address.populate('currency').execPopulate()
-        return address.toAddressJSON(address.currency.toCurrencyJSON())
-      })
-    }
+    let addresses = await getUserAddresses(user._id)
     console.log(addresses)
     return res.status(HTTPStatus.OK).json({
       ...user.toProfileJSON(),
