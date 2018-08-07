@@ -11,10 +11,11 @@ const getUserAddresses = async (id) => {
       let addresses = await Address.find({ user: id })
 
       if (addresses.length) {
-        addresses = addresses.map(async (address) => {
+        addresses = await Promise.all(addresses.map(async (address) => {
           await address.populate('currency').execPopulate()
-          return resolve(address.toAddressJSON(address.currency.toCurrencyJSON()))
-        })
+          return address.toAddressJSON(address.currency.toCurrencyJSON())
+        }))
+        return resolve(addresses)
       } else {
         return resolve([])
       }

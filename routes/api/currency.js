@@ -22,7 +22,7 @@ router.get('/currencies', async (req, res, next) => {
 
 router.post('/currencies', validate.addCurrency, async (req, res, next) => {
   console.log(req.body)
-  const errors = validationResult(req)
+  const errors = validationResult(req).mapped()
   if (!errors.isEmpty) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,

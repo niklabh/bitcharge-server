@@ -59,8 +59,7 @@ router.get('/addresses/:symbol', JWT.authenticated, async (req, res, next) => {
 
 router.post('/addresses', JWT.authenticated, validate.addAddress, async (req, res, next) => {
   console.log(req.body)
-  req.body['user'] = req.user._id
-  const errors = validationResult(req)
+  const errors = validationResult(req).mapped()
   if (!errors.isEmpty) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
@@ -69,7 +68,12 @@ router.post('/addresses', JWT.authenticated, validate.addAddress, async (req, re
   }
 
   try {
-    const address = await new Address(matchedData(req)).save()
+    const currency = await Currency.findOne({symbol: req.body.currency})
+    const address = await new Address({
+      ...matchedData(req),
+      user: req.user._id,
+      currency: currency._id
+    }).save()
     await address.populate('currency').execPopulate()
     console.log(address)
     return res.status(HTTPStatus.OK).json({
