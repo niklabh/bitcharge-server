@@ -59,11 +59,11 @@ router.get('/addresses/:symbol', JWT.authenticated, async (req, res, next) => {
 
 router.post('/addresses', JWT.authenticated, validate.addAddress, async (req, res, next) => {
   console.log(req.body)
-  const errors = validationResult(req).mapped()
+  const errors = validationResult(req)
   if (!errors.isEmpty) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
-      errors
+      errors: errors.mapped()
     })
   }
 

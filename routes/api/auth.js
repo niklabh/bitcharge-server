@@ -14,11 +14,11 @@ const validate = require('../../validators/auth')
 
 router.post('/signup', validate.signup, async (req, res, next) => {
   console.log(req.body)
-  const errors = validationResult(req).mapped()
+  const errors = validationResult(req)
   if (!errors.isEmpty) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
-      errors
+      errors: errors.mapped()
     })
   }
   try {
@@ -44,7 +44,7 @@ router.post('/signup', validate.signup, async (req, res, next) => {
 
 router.post('/login', validate.login, (req, res, next) => {
   console.log(req.body)
-  const errors = validationResult(req).mapped()
+  const errors = validationResult(req)
   if (!errors.isEmpty) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
