@@ -21,6 +21,7 @@ exports.signup = [
     .exists().trim().isLength({ min: 2 })
     .withMessage('Username should be atleast 2 characters long')
     .custom(async (value) => {
+      console.log(value, 'in validator')
       try {
         const user = await User.findOne({ username: value })
         if (user) {
