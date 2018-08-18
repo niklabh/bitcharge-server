@@ -5,14 +5,20 @@ const Address = require('../models/Address')
 
 const addressRegex = {
   ETH: new RegExp('^0x[a-fA-F0-9]{40}$'),
-  BTC: new RegExp('^[13][a-km-zA-HJ-NP-Z0-9]{26,33}$')
+  BTC: new RegExp('^[13][a-km-zA-HJ-NP-Z0-9]{26,33}$'),
+  LTC: new RegExp('^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$')
 }
 
 const checkAddress = (address, symbol) => {
-  console.log('address, symbol')
-  return Object.keys(addressRegex).map((checkSymbol) => {
+  console.log('address, symbol', address, symbol)
+
+  const testArray = Object.keys(addressRegex).map((checkSymbol) => {
     return (symbol === checkSymbol && addressRegex[checkSymbol].test(address))
-  }).includes(true)
+  })
+
+  console.log('test array', testArray)
+
+  return testArray.includes(true)
 }
 
 exports.addAddress = [
