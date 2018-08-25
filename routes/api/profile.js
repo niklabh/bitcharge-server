@@ -30,8 +30,7 @@ router.get('/profile', JWT.authenticated, async (req, res, next) => {
     const addresses = await getUserAddresses(req.user._id)
     console.log(addresses)
     return res.status(HTTPStatus.OK).json({
-      ...req.user.toAuthJSON(),
-      addresses
+      ...req.user.toAuthJSON()
     })
   } catch (e) {
     return next(e)

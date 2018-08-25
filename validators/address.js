@@ -43,3 +43,23 @@ exports.addAddress = [
   check('currency')
     .exists().withMessage('Cannot be empty')
 ]
+
+exports.updateAddress = [
+  check('address')
+    .exists().withMessage('Cannot be empty')
+    .custom(async (value, { req }) => {
+      console.log('In address evaluation')
+      try {
+        const currency = await Currency.findOne({ symbol: req.body.currency })
+        if (!checkAddress(value, currency.symbol)) {
+          return Promise.reject(new Error('Invalid address'))
+        }
+        const address = await Address.findOne({ address: value })
+        if (address) {
+          return Promise.reject(new Error('Address already used'))
+        }
+      } catch (e) {
+        return Promise.reject(new Error('Invalid address'))
+      }
+    })
+]
