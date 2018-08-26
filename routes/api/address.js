@@ -129,7 +129,7 @@ router.delete('/addresses/:symbol', JWT.authenticated, async (req, res, next) =>
         }
       })
     }
-    const address = await Address.findOne({ currency: currency._id })
+    const address = await Address.findOneAndRemove({ currency: currency._id })
     if (!address) {
       return next({
         statusCode: HTTPStatus.NOT_FOUND,
@@ -139,9 +139,8 @@ router.delete('/addresses/:symbol', JWT.authenticated, async (req, res, next) =>
         }
       })
     }
-
-    await Address.deleteOne({ id: address._id })
-    return res.status(HTTPStatus.OK).json({
+    console.log('deleted address', address)
+    return res.status(HTTPStatus.NO_CONTENT).json({
       address: `${symbol} address deleted successfully`
     })
   } catch (e) {
