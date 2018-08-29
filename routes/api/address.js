@@ -61,7 +61,7 @@ router.put('/addresses/:symbol', JWT.authenticated, validate.updateAddress, asyn
   console.log(req.body)
 
   const errors = validationResult(req)
-  if (!errors.empty()) {
+  if (!errors.isEmpty()) {
     return next({
       statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
       errors: errors.mapped()
@@ -78,9 +78,12 @@ router.put('/addresses/:symbol', JWT.authenticated, validate.updateAddress, asyn
         }
       })
     }
-    let address = await Address.findOne({ user: req.user._id, currency: currency._id })
+    let address = await Address.findOneAndUpdate(
+      { user: req.user._id, currency: currency._id },
+      { address: req.body.address },
+      { new: true }
+    )
 
-    address = await address.set({ address: req.body.address })
     return res.status(HTTPStatus.OK).json({
       address: address.toAddressJSON(currency.toCurrencyJSON())
     })

@@ -50,7 +50,7 @@ exports.updateAddress = [
     .custom(async (value, { req }) => {
       console.log('In address evaluation')
       try {
-        const currency = await Currency.findOne({ symbol: req.body.currency })
+        const currency = await Currency.findOne({ symbol: req.params.symbol })
         if (!checkAddress(value, currency.symbol)) {
           return Promise.reject(new Error('Invalid address'))
         }
@@ -59,6 +59,7 @@ exports.updateAddress = [
           return Promise.reject(new Error('Address already used'))
         }
       } catch (e) {
+        console.log(e)
         return Promise.reject(new Error('Invalid address'))
       }
     })
