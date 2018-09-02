@@ -1,9 +1,38 @@
 const router = require('express').Router()
 const HTTPStatus = require('http-status-codes')
+const cloudinary = require('cloudinary')
+const cloudinaryStorage = require('multer-storage-cloudinary')
+const multer = require('multer')
+const randomstring = require('randomstring')
+const { validationResult } = require('express-validator/check')
+const { matchedData } = require('express-validator/filter')
 
 const User = require('../../models/User')
 const Address = require('../../models/Address')
 const JWT = require('../../config/jwt')
+
+const validate = require('../../validators/auth')
+
+const generateFileName = (length = 10) => {
+  return randomstring.generate(length)
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
+
+const storage = cloudinaryStorage({
+  cloudinary: cloudinary,
+  folder: 'avatars',
+  allowedFormats: ['jpg', 'png'],
+  filename: (req, file, next) => {
+    return next(undefined, generateFileName(8))
+  }
+})
+
+const fileParser = multer({ storage })
 
 const getUserAddresses = async (id) => {
   return new Promise(async (resolve, reject) => {
@@ -62,20 +91,29 @@ router.get(`/:username`, async (req, res, next) => {
   }
 })
 
-/*
-router.put('/profile', JWT.authenticated, (req, res, next) => {
-  let form = new formidable.IncomingForm()
-
-  form.parse(req)
-
-  form.on('fileBegin', (name, file) => {
-    file.on('error', e => next({ statusCode: HTTPStatus.UNPROCESSABLE_ENTITY, errors: e }))
-
-    file.open = function () {
-      this._writeStream
+router.put('/profile', JWT.authenticated, fileParser.single('avatar'), validate.editProfile, async (req, res, next) => {
+  console.log(req.body, req.file)
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return next({
+      statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
+      errors: errors.mapped()
+    })
+  }
+  try {
+    let profileData = matchedData(req)
+    if (req.file) {
+      profileData['avatar'] = req.file.secure_url
+      console.log('profileData', profileData)
     }
-  })
+    const user = await User.findOneAndUpdate({ email: req.user.email }, profileData, { new: true })
+    console.log(user)
+    return res.status(HTTPStatus.OK).json({
+      ...user.toProfileJSON()
+    })
+  } catch (e) {
+    return next(e)
+  }
 })
-*/
 
 module.exports = router
