@@ -92,7 +92,6 @@ router.get(`/:username`, async (req, res, next) => {
 })
 
 router.put('/profile', JWT.authenticated, fileParser.single('avatar'), validate.editProfile, async (req, res, next) => {
-  console.log(req.body, req.file)
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return next({
@@ -104,12 +103,11 @@ router.put('/profile', JWT.authenticated, fileParser.single('avatar'), validate.
     let profileData = matchedData(req)
     if (req.file) {
       profileData['avatar'] = req.file.secure_url
-      console.log('profileData', profileData)
     }
     const user = await User.findOneAndUpdate({ email: req.user.email }, profileData, { new: true })
     console.log(user)
     return res.status(HTTPStatus.OK).json({
-      ...user.toProfileJSON()
+      ...user.toAuthJSON()
     })
   } catch (e) {
     return next(e)
