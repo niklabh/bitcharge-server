@@ -52,8 +52,10 @@ app.use((err, req, res, next) => {
 function connectDB () {
   const options = {
     reconnectTries: Number.MAX_VALUE,
-    reconnectInterval: 500
+    reconnectInterval: 500,
+    useNewUrlParser: true
   }
+
   mongoose.connect(mongoURI, options)
   return mongoose.connection
 }
