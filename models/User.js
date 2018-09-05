@@ -16,8 +16,8 @@ const UserSchema = new mongoose.Schema({
   avatar: String,
   active: { type: Boolean, default: false },
   admin: { type: Boolean, default: false },
-  recoveryCode: { code: String, expiration: Date },
-  confirmationCode: { code: String, expiration: Date }
+  recoveryCode: String,
+  confirmationCode: String
 }, { timestamps: true })
 
 UserSchema.pre('save', async function (next) {
@@ -51,12 +51,7 @@ UserSchema.methods.generateRecoveryCode = function (length = 6) {
     charset: 'numeric'
   })
 
-  const recoveryCode = {
-    code,
-    expiration: moment().add(60, 'minutes').toDate()
-  }
-
-  return recoveryCode
+  return code
 }
 
 UserSchema.methods.saveRecoveryCode = function (recoveryCode) {
@@ -66,15 +61,9 @@ UserSchema.methods.saveRecoveryCode = function (recoveryCode) {
 }
 
 UserSchema.methods.generateConfirmationCode = function (length = 12) {
-  const code = randomstring.generate({
+  return randomstring.generate({
     length
   })
-  const confirmationCode = {
-    code,
-    expiration: moment().add(24, 'hours').toDate()
-  }
-
-  return confirmationCode
 }
 
 UserSchema.methods.saveConfirmationCode = function (confirmationObj) {
@@ -85,18 +74,10 @@ UserSchema.methods.saveConfirmationCode = function (confirmationObj) {
 
 UserSchema.methods.confirmEmail = function (code) {
   console.log(code)
-  if (code === this.confirmationCode.code) {
-    console.log(this.confirmationCode)
-    if (moment().isBefore(this.confirmationCode.expiration)) {
-      this.active = true
-      this.confirmationCode = null
-      return this.save()
-    } else {
-      const error = new Error('Confirmation Code expired')
-      error.type = errorTypes.CONFIRM_EMAIL_CODE_EXPIRED
-
-      throw error
-    }
+  if (code === this.confirmationCode) {
+    this.active = true
+    this.confirmationCode = null
+    return this.save()
   } else {
     console.log('Invalid code')
     const error = new Error('Invalid confirmation code')
