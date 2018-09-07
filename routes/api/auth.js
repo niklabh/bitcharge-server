@@ -145,14 +145,4 @@ router.get('/verify/email', JWT.authenticated, async (req, res, next) => {
   }
 })
 
-router.post('/forgot', validate.forgotPassword, async (req, res, next) => {
-  const errors = validationResult(req).mapped()
-  if (!errors.isEmpty) {
-    return next({
-      statusCode: HTTPStatus.UNPROCESSABLE_ENTITY,
-      errors
-    })
-  }
-})
-
 module.exports = router

@@ -9,7 +9,7 @@ const JWT = require('../../config/jwt')
 
 const validate = require('../../validators/address')
 
-router.get('/addresses', JWT.authenticated, async (req, res, next) => {
+router.get('/', JWT.authenticated, async (req, res, next) => {
   let addresses = await Address.find({ user: req.user._id })
 
   addresses = await Promise.all(addresses.map(async (address) => {
@@ -23,7 +23,7 @@ router.get('/addresses', JWT.authenticated, async (req, res, next) => {
   })
 })
 
-router.get('/addresses/:symbol', JWT.authenticated, async (req, res, next) => {
+router.get('/:symbol', JWT.authenticated, async (req, res, next) => {
   const { symbol } = req.params
   try {
     const currency = await Currency.findOne({ symbol })
@@ -57,7 +57,7 @@ router.get('/addresses/:symbol', JWT.authenticated, async (req, res, next) => {
   }
 })
 
-router.put('/addresses/:symbol', JWT.authenticated, validate.updateAddress, async (req, res, next) => {
+router.put('/:symbol', JWT.authenticated, validate.updateAddress, async (req, res, next) => {
   console.log(req.body)
 
   const errors = validationResult(req)
@@ -92,7 +92,7 @@ router.put('/addresses/:symbol', JWT.authenticated, validate.updateAddress, asyn
   }
 })
 
-router.post('/addresses', JWT.authenticated, validate.addAddress, async (req, res, next) => {
+router.post('/', JWT.authenticated, validate.addAddress, async (req, res, next) => {
   console.log(req.body)
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -119,7 +119,7 @@ router.post('/addresses', JWT.authenticated, validate.addAddress, async (req, re
   }
 })
 
-router.delete('/addresses/:symbol', JWT.authenticated, async (req, res, next) => {
+router.delete('/:symbol', JWT.authenticated, async (req, res, next) => {
   const { symbol } = req.params
   try {
     const currency = await Currency.findOne({ symbol })

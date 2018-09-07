@@ -8,7 +8,7 @@ const Currency = require('../../models/Currency')
 const validate = require('../../validators/currency')
 const JWT = require('../../config/jwt')
 
-router.get('/currencies', async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     let currencies = await Currency.find()
     currencies = currencies.map(currency => currency.toCurrencyJSON())
@@ -20,7 +20,7 @@ router.get('/currencies', async (req, res, next) => {
   }
 })
 
-router.post('/currencies', validate.addCurrency, async (req, res, next) => {
+router.post('/', JWT.authenticated, validate.addCurrency, async (req, res, next) => {
   console.log(req.body)
   const errors = validationResult(req)
   if (!errors.isEmpty) {

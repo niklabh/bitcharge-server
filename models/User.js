@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const randomstring = require('randomstring')
 const _ = require('lodash')
-const moment = require('moment')
 
 const errorTypes = require('../config/constants').errorTypes
 
@@ -82,6 +81,20 @@ UserSchema.methods.confirmEmail = function (code) {
     console.log('Invalid code')
     const error = new Error('Invalid confirmation code')
     error.type = errorTypes.CONFIRM_EMAIL_CODE_INVALID
+
+    throw error
+  }
+}
+
+UserSchema.methods.updatePassword = function (code, password) {
+  if (code === this.recoveryCode) {
+    this.password = password
+    this.recoveryCode = null
+    return this.save()
+  } else {
+    console.log('Invalid code')
+    const error = new Error('Invalid recovery code')
+    error.type = errorTypes.FORGOT_PASSWORD_CODE_INVALID
 
     throw error
   }

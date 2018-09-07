@@ -76,9 +76,3 @@ exports.editProfile = [
 
   sanitize(['username', 'email', 'name']).trim()
 ]
-
-exports.forgotPassword = [
-  check('email')
-    .exists().withMessage('Cannot be empty')
-    .isEmail().withMessage('Must be a valid email')
-]
