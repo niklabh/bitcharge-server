@@ -6,7 +6,8 @@ const Address = require('../models/Address')
 const addressRegex = {
   ETH: new RegExp('^0x[a-fA-F0-9]{40}$'),
   BTC: new RegExp('^[13][a-km-zA-HJ-NP-Z0-9]{26,33}$'),
-  LTC: new RegExp('^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$')
+  LTC: new RegExp('^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$'),
+  BTCLN: new RegExp('(.|\n)*?')
 }
 
 const checkAddress = (address, symbol) => {
