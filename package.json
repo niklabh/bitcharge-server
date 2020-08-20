@@ -14,7 +14,7 @@
   "dependencies": {
     "agenda": "^2.0.0",
     "aws-sdk": "^2.238.1",
-    "bcrypt": "^2.0.1",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.2",
     "cloudinary": "^1.11.0",
     "cors": "^2.8.4",
